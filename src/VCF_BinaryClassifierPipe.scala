@@ -41,10 +41,11 @@ object VCF_BinaryClassifierPipe {
 
     val mtryFracParams = Array(0.1,0.15,0.2,0.25,0.3,0.35,0.4)
 
-    val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/10ADSP_ATLAS_in_consensus_NSSS_trainSplit.vcf")
+    val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
+
     val labelSource = vsContext.labelSource("/data/content/vcf_classification/data_used/labels_train.txt", "label")
 
-    val featureSourceTest=vsContext.featureSource("/data/content/vcf_classification/data_used/10ADSP_ATLAS_in_consensus_NSSS_testSplit.vcf")
+    val featureSourceTest=vsContext.featureSource("/data/content/vcf_classification/data_used/testSplit.vcf")
     val labelSourceTest = vsContext.labelSource("/data/content/vcf_classification/data_used/labels_test.txt", "label")
 
     val paramsVarImp = Tuning.varImpTuning(featureSource,labelSource,nTreeParams,mtryFracParams)

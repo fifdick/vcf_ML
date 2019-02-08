@@ -51,7 +51,7 @@ def evaluateModel_Accuracy(
 
   def evaluateModel_PR(predictions: DataFrame) : RDD[(Double,Double)] = {
 
-    val predictions2ProbLabl = predictions.select("label", "probability").map(row => Tuple2(row.getDouble(1), row.getDouble(0))).rdd
+    val predictions2ProbLabl = predictions.select("label", "probability").rdd.map(row => Tuple2(row.getDouble(1), row.getDouble(0)))
 
     val metrics = new BinaryClassificationMetrics(predictions2ProbLabl)
     val precision = metrics.precisionByThreshold()

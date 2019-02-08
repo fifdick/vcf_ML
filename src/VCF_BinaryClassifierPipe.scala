@@ -18,6 +18,7 @@ import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 
 
 
@@ -48,10 +49,9 @@ object VCF_BinaryClassifierPipe {
     val featureSourceTest=vsContext.featureSource("/data/content/vcf_classification/data_used/testSplit.vcf")
     val labelSourceTest = vsContext.labelSource("/data/content/vcf_classification/data_used/labels_test.txt", "label")
 
-    val paramsVarImp = Tuning.varImpTuning(featureSource,labelSource,nTreeParams,mtryFracParams)
+    val paramsVarImp = Tuning.varImpTuning(vsContext,featureSource,labelSource,nTreeParams,mtryFracParams)
 
     val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = paramsVarImp._1, rfParams = RandomForestParams(oob = true, nTryFraction = paramsVarImp._2))
-
 
     NtopParams.map { Ntop =>
 
@@ -102,13 +102,19 @@ object VCF_BinaryClassifierPipe {
       val mostFreqLabel = utils.maxClass(pureTestData)
       val classBalance = utils.labelBalanceRatio(pureTestData)
 
-      val majorityVotePrediction =pureTestData.select("label").map{ row =>
+      val majorityVoteRDD =pureTestData.select("label").rdd.map{ row =>
         val label = row.getDouble(0)
         val prediction = mostFreqLabel
         val propability = classBalance
-        (label,prediction,propability)
-      }.toDF("label","prediction","propability")
-      majorityVotePrediction.printSchema()
+        Row(label,prediction,propability)
+      }
+      val schema: StructType=  new StructType()
+        .add(StructField("label", DoubleType, true))
+        .add(StructField("prediction", IntegerType, true))
+        .add(StructField("propability", DoubleType, true))
+
+      val majorityVotePrediction = spark.createDataFrame(majorityVoteRDD,schema)
+
       //Precision - Recall
       val curve1= Evaluator.evaluateModel_PR(predictions1)
       val curve2= Evaluator.evaluateModel_PR(predictions2)

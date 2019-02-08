@@ -1,13 +1,13 @@
 import au.csiro.variantspark.algo.RandomForestParams
-import au.csiro.variantspark.api.ImportanceAnalysis
+import au.csiro.variantspark.api.{ImportanceAnalysis, VSContext}
 import au.csiro.variantspark.input.{FeatureSource, LabelSource}
 
 object Tuning {
 
-  def varImpTuning(featureSource: FeatureSource, labelSource: LabelSource, nTreeParams: Array[Int], mtryFracParams: Array[Double]): Tuple2[Int, Double] = {
+  def varImpTuning(vsContext: VSContext, featureSource: FeatureSource, labelSource: LabelSource, nTreeParams: Array[Int], mtryFracParams: Array[Double]): Tuple2[Int, Double] = {
     val variantSparkModels = (for (nTree <- nTreeParams; mtryFrac <- mtryFracParams) yield {
 
-      val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = nTree, rfParams = RandomForestParams(oob = true, nTryFraction = mtryFrac))
+      val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = nTree, rfParams = RandomForestParams(oob = true, nTryFraction = mtryFrac))(vsContext = vsContext)
       val oobErr: Double = importanceAnalysis.rfModel.oobError
       (oobErr, Tuple2(nTree, mtryFrac))
     }).toMap

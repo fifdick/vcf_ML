@@ -5,7 +5,7 @@ class BinClassificationResult (sparkSession: SparkSession) {
 
    //case class Prediction(label: Double, propability: Double)
 
-  private var _PRcurve: RDD[(Double,Double)] = RDD((0,0))
+  private var _PRcurve: RDD[(Double,Double)] = sparkSession.sparkContext.parallelize(Seq(Tuple2(0.0,0.0)))
 private var _AUCvalue: Double = 0
 private var _accuracy : Double = 0
 private var _predicitons : DataFrame= sparkSession.emptyDataFrame

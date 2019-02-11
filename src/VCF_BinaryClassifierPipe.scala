@@ -16,7 +16,7 @@ import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.{Model, Pipeline}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+import org.apache.spark.mllib.evaluation
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 
@@ -27,7 +27,7 @@ object VCF_BinaryClassifierPipe {
 
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
-    val conf = new SparkConf().setAppName("spark_test").setMaster("local[*]")
+    val conf = new SparkConf().setAppName("spark_test").setMaster("local[10]")
     val spark = SparkSession
       .builder()
       .config(conf)
@@ -53,7 +53,7 @@ object VCF_BinaryClassifierPipe {
 
     val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = paramsVarImp._1, rfParams = RandomForestParams(oob = true, nTryFraction = paramsVarImp._2))
 
-    NtopParams.map { Ntop =>
+    val NtopResults = NtopParams.map { Ntop =>
 
       // Create datasets selecting nTop variables
       val data: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSource, labelSource, importanceAnalysis, Ntop, spark)
@@ -138,11 +138,12 @@ object VCF_BinaryClassifierPipe {
       result.PRcurve=curve2
       result.baselineAccuracy=accuracyBase
 
-        return(result)
+        result
 
 
 
     } // nTop map
+
   }//main
 
 

@@ -7,35 +7,33 @@ import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 @SerialVersionUID(100L)
 class Tuning(sparkSession: SparkSession) extends Serializable {
-  // vars
-  private var _bestParam: Tuple2[Int, Double] = (0, 0)
-  private var _minOOB: Double = 1
-  private var _TuningResultDf: DataFrame = sparkSession.emptyDataFrame
-  private var _top10s: Array[String] = Array("")
 
-
-  val schema = new StructType()
+ val schema = new StructType()
   schema.add(StructField("oobErr", DoubleType))
   schema.add(StructField("nTree", IntegerType))
   schema.add(StructField("mTry", DoubleType))
 
 
+
+  // vars
+  private var _bestParam: Tuple2[Int, Double] = (0, 0)
+  private var _minOOB: Double = 1
+  private var _TuningResultDf: DataFrame = sparkSession.createDataFrame(sparkSession.sparkContext.emptyRDD[Row],schema)
+  private var _top10s: Array[String] = Array("")
+
+
+
+
   // Getter
   def bestParam: Tuple2[Int, Double] = _bestParam
-
   def minOOB: Double = _minOOB
-
   def TuningResultDf: DataFrame = _TuningResultDf
-
   def top10s: Array[String] = _top10s
 
   // Setter
   def bestParam_=(value: Tuple2[Int, Double]): Unit = _bestParam = value
-
   def minOOB_=(value: Double): Unit = _minOOB = value
-
   def TuningResultDf_=(value: DataFrame): Unit = _TuningResultDf = value
-
   def top10s_=(value: Array[String]): Unit = _top10s = value
 
   //methods
@@ -60,7 +58,7 @@ class Tuning(sparkSession: SparkSession) extends Serializable {
 
     ParamsOpt match {
       case Some(i) => {
-        println(s"Lowest oobErr was: $_minOOB with parameters: ${i._1}")
+        println(s"Lowest oobErr was: ${_minOOB} with parameters: ${i._1}")
         _bestParam = i._1
 
       }

@@ -19,6 +19,8 @@ import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.mllib.evaluation
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
+import java.io
+import java.io.{FileOutputStream, ObjectOutputStream}
 
 
 
@@ -34,13 +36,16 @@ object VCF_BinaryClassifierPipe {
       .enableHiveSupport()
       .getOrCreate()
 
-    implicit val vsContext = VSContext(spark)
+    implicit val vsContext : VSContext = VSContext(spark)
 
+    val timeStamp : Long = System.currentTimeMillis / 1000
 
-    val nTreeParams = Array(10,100,1000,10000)
+    /*val nTreeParams = Array(10,100,1000,10000)
+    val mtryFracParams = Array(0.1,0.2,0.25,0.3,0.35,0.4)
+   */
+    val nTreeParams = Array(1,2)
     val NtopParams = Array(100,500,1000,2000)
-
-    val mtryFracParams = Array(0.1,0.15,0.2,0.25,0.3,0.35,0.4)
+    val mtryFracParams = Array(0.1,0.05)
 
     val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
 
@@ -49,9 +54,25 @@ object VCF_BinaryClassifierPipe {
     val featureSourceTest=vsContext.featureSource("/data/content/vcf_classification/data_used/testSplit.vcf")
     val labelSourceTest = vsContext.labelSource("/data/content/vcf_classification/data_used/labels_test.txt", "label")
 
-    val paramsVarImp = Tuning.varImpTuning(vsContext,featureSource,labelSource,nTreeParams,mtryFracParams)
 
-    val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = paramsVarImp._1, rfParams = RandomForestParams(oob = true, nTryFraction = paramsVarImp._2))
+    val TuningObj = new Tuning(spark)
+
+    TuningObj.varImpTuning(vsContext,featureSource,labelSource,nTreeParams,mtryFracParams,spark)
+    val filename = "/data/content/vcf_classification/results/tuningVI/" + timeStamp + ".txt"
+    TuningObj.TuningResultDf.write.csv(filename)
+
+ // (2) write the instance out to a file
+    val oos = new ObjectOutputStream(new FileOutputStream(filename + ".ScalaObj"))
+        oos.writeObject(TuningObj)
+        oos.close
+// (3) read the object back in
+  //  val ois = new ObjectInputStream(new FileInputStream("/tmp/nflx"))
+   // val stock = ois.readObject.asInstanceOf[Stock]
+    //ois.close
+
+
+   /*
+    val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = TuningObj.bestParam._1, rfParams = RandomForestParams(oob = true, nTryFraction = TuningObj.bestParam._2))
 
     val NtopResults = NtopParams.map { Ntop =>
 
@@ -143,6 +164,7 @@ object VCF_BinaryClassifierPipe {
 
 
     } // nTop map
+    */
 
   }//main
 

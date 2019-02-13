@@ -60,7 +60,7 @@ class Tuning(sparkSession: SparkSession) extends Serializable {
     ParamsOpt match {
       case Some(i) => {
         println(s"Lowest oobErr was: ${minOOB} with parameters: ${i._1}")
-        println("")
+        println(" ")
         bestParam = i._1
 
       }

@@ -29,7 +29,7 @@ object VCF_BinaryClassifierPipe {
 
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
-    val conf = new SparkConf().setAppName("spark_test").setMaster("local[10]")
+    val conf = new SparkConf().setAppName("spark_test").setMaster("local[15]")
     val spark = SparkSession
       .builder()
       .config(conf)
@@ -43,7 +43,7 @@ object VCF_BinaryClassifierPipe {
     val nTreeParams = Array(10,100,1000,10000)
     val mtryFracParams = Array(0.1,0.2,0.25,0.3,0.35,0.4)
 
-    
+
     val NtopParams = Array(100,500,1000,2000)
 
 
@@ -59,12 +59,14 @@ object VCF_BinaryClassifierPipe {
 
     TuningObj.varImpTuning(vsContext,featureSource,labelSource,nTreeParams,mtryFracParams)
     val filename = "/data/content/vcf_classification/results/tuningVI/" + timeStamp + ".txt"
-    TuningObj.TuningResultDf.coalesce(1).write.csv(filename)
 
  // (2) write the instance out to a file
     val oos = new ObjectOutputStream(new FileOutputStream(filename + ".ScalaObj"))
         oos.writeObject(TuningObj)
         oos.close
+
+    TuningObj.TuningResultDf.coalesce(1).write.csv(filename)
+    TuningObj.top10s.foreach(println)
 // (3) read the object back in
   //  val ois = new ObjectInputStream(new FileInputStream("/tmp/nflx"))
    // val stock = ois.readObject.asInstanceOf[Stock]

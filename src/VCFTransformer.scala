@@ -39,7 +39,6 @@ object VCFTransformer {
     }.toList.transpose.map(_.toMap)
     println("Transposing of map, runtime")
     println((System.nanoTime - t3) / 1e9d)
-
     println("transposed featureMap:")
     print(transposedMap)
     println("")

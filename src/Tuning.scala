@@ -1,7 +1,7 @@
 import au.csiro.variantspark.algo.RandomForestParams
 import au.csiro.variantspark.api.{ImportanceAnalysis, VSContext}
 import au.csiro.variantspark.input.{FeatureSource, LabelSource}
-import ca.innovativemedicine.vcf.Type
+//import ca.innovativemedicine.vcf.Type
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 

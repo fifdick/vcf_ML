@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="java-8-oracle">
+    <CLASSES>
+      <root url="file:///usr/lib/jvm/java-8-oracle" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file:///usr/lib/jvm/java-8-oracle" recursive="false" />
+  </library>
+</component>

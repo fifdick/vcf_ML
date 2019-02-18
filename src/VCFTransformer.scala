@@ -6,12 +6,14 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 object VCFTransformer {
 
   def ReverseTransposeVCF(featureSource: FeatureSource, labelSource: LabelSource, importanceAnalysis: ImportanceAnalysis, Ntop: Int, spark: SparkSession ) : DataFrame= {
-    val t1 = System.nanoTime
-    val vars = importanceAnalysis.importantVariables(nTopLimit = Ntop).map(x => x._1)
+    //val t1 = System.nanoTime
+    val topVars = importanceAnalysis.importantVariables(nTopLimit = Ntop)
+    topVars.foreach(println)
+    val vars  = topVars.map(x => x._1)
     //filter featureSource to only top vars
     val subsettedFeatures = featureSource.features().filter(x => vars.toArray contains (x.label))
-    println("Subsetting features by top most important, runtime:")
-    println((System.nanoTime - t1) / 1e9d)
+    //println("Subsetting features by top most important, runtime:")
+    //println((System.nanoTime - t1) / 1e9d)
 
 
     println("imp vars")

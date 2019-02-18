@@ -1,12 +1,9 @@
-import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.ml.{Pipeline, PipelineStage, Transformer}
-
-import scala.collection.immutable.HashMap
+import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute._
-import org.apache.spark.ml.linalg.VectorUDT
+import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.{DataFrame, Row}
 object Evaluator {
 
   /**
@@ -50,8 +47,10 @@ def evaluateModel_Accuracy(
 
 
   def evaluateModel_PR(predictions: DataFrame) : RDD[(Double,Double)] = {
+    val predictions2ProbLabl = predictions.select("label", "rawPrediction").rdd.map{
+      case Row(d: Double,v: Vector[Double]) => Tuple2(d, v.max)
+    }
 
-    val predictions2ProbLabl = predictions.select("label", "probability").rdd.map(row => Tuple2(row.getDouble(1), row.getDouble(0)))
 
     val metrics = new BinaryClassificationMetrics(predictions2ProbLabl)
     val precision = metrics.precisionByThreshold()

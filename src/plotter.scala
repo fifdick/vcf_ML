@@ -41,17 +41,20 @@ class plotter(spark: SparkSession) {
   }
 
   def makePlotReadyDF(accuracyFile:String,baselineFile:String,Ntops:Array[Int]) : DataFrame = {
-
+//**TODO : check that order of Ntop Array or that order of the lines in the file are exactly as run by Ntop Array...
+// (probbaly not since we used coalesce with shuffle = true for savingAsTextFile)
     val accuracyValues = utils.readFile(accuracyFile).map{s => s.toDouble}
     val baselineValues = utils.readFile(accuracyFile).map{s => s.toDouble}
 
-    val accuracies = Ntops.zip(accuracyValues).toSeq
-    val baselines = Ntops.zip(baselines).toSeq
+    val accuracies =Ntops.zip(accuracyValues).toMap.toSeq
+    val baselines = Ntops.zip(baselineValues).toMap.toSeq
 
-    val mergedMap = (accuracies ++ baselines)
-      .groupBy{case(Ntop,performanceValue) => Ntop}
-      .mapValues(Ntop => Ntop.map{ case(Ntop,performanceValue)=> performanceValue}.toTuple2)
-    val rdd = spark.sparkContext.parallelize(mergedMap).map{ x => Row(x._1,x._2._1.x._2._2)}
+    val merged= accuracies ++ baselines
+    val grouped = merged.groupBy{KVp => KVp._1}
+    val cleaned = grouped.mapValues{KVp => KVp.map{elem => elem._2}.toList}
+    //make sure that order of elements in the list will be as defined in line 52 where merged is defined
+    val rdd = spark.sparkContext.parallelize(cleaned.map{z => Row(z._1,z._2(0),z._2(1))})
+
     val schema = new StructType(
       Array(
         StructField("Ntop", IntegerType, true),

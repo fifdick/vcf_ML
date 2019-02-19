@@ -3,8 +3,9 @@ import org.apache.spark.ml.attribute._
 import org.apache.spark.mllib.evaluation.{BinaryClassificationMetrics, MulticlassMetrics}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.StructField
-import org.apache.spark.sql.{DataFrame, Row}
-object Evaluator {
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+
+object Evaluator{
 
   /**
    * Examine a schema to identify the number of classes in a label column.
@@ -46,11 +47,9 @@ def evaluateModel_Accuracy(
   }
 
 
-  def evaluateModel_PR(predictions: DataFrame) : RDD[(Double,Double)] = {
-    val predictions2ProbLabl = predictions.select("label", "rawPrediction").rdd.map{
-      case Row(d: Double,v: Vector[Double]) => Tuple2(d, v.max)
-    }
+  def evaluateModel_PR(predictions: DataFrame,spark : SparkSession) : RDD[(Double,Double)] = {
 
+    val predictions2ProbLabl = predictions.select("label", "probability").rdd.map{case r: Row => (r.getDouble(0), r.getAs[Vector[Double]](1).lift(0).get)}
 
     val metrics = new BinaryClassificationMetrics(predictions2ProbLabl)
     val precision = metrics.precisionByThreshold()

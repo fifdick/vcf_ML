@@ -1,11 +1,12 @@
 
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import spire.syntax.field
 import vegas._
 import vegas.render.WindowRenderer._
 import vegas.data.External._
 import vegas.sparkExt._
-
+import vegas.Field
 class plotter(spark: SparkSession) {
 
   def simpleTestPlot(): Unit = {
@@ -15,7 +16,7 @@ class plotter(spark: SparkSession) {
     df.show()
 
     val usingSparkdf = Vegas("UsingSpark")
-      .withDataFrame(df1)
+      .withDataFrame(df)
       .encodeX("id", Nom)
       .encodeY("value", Quant)
       .mark(Bar)
@@ -65,8 +66,35 @@ class plotter(spark: SparkSession) {
     df.head()
     df
 
-
   }
+
+  def plotAccuracyScatter (df :DataFrame) : Unit = {
+    val df_melted = melt(id_vars = Seq("Ntop"), df)
+     val usingSparkdf = Vegas("Accuracy vs Ntop",width=800,height=600)
+      .withDataFrame(df)
+      .encodeX("Ntop", Quant)
+      .encodeY("value", Quant)
+       .encodeColor(vegas.field="variable",dataType=Nominal, legend=Legend(orient="left", title=""))
+      .mark(Line)
+
+    usingSparkdf.show
+  }
+
+  def melt(
+            id_vars: Seq[String], value_vars: Seq[String],
+            var_name: String = "variable", value_name: String = "value",df : DataFrame) : DataFrame = {
+
+        // Create array<struct<variable: str, value: ...>>
+        val _vars_and_vals = array((for (c <- value_vars) yield { struct(lit(c).alias(var_name), col(c).alias(value_name)) }): _*)
+
+        // Add to the DataFrame and explode
+        val _tmp = df.withColumn("_vars_and_vals", explode(_vars_and_vals))
+
+        val cols = id_vars.map(col _) ++ { for (x <- List(var_name, value_name)) yield { col("_vars_and_vals")(x).alias(x) }}
+
+        return _tmp.select(cols: _*)
+
+    }
 
 }
 

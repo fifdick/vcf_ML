@@ -129,11 +129,13 @@ object VCF_BinaryClassifierPipe {
       predictions2.printSchema()
       predictions2.show(1)
       //Precision - Recall
-      val curve1 = Evaluator.evaluateModel_PR(predictions1)
-      val curve2 = Evaluator.evaluateModel_PR(predictions2)
+      val curve1 = Evaluator.evaluateModel_PR(predictions1,spark)
+      val curve2 = Evaluator.evaluateModel_PR(predictions2,spark)
 
       // Accuracy
+      println("accuracy of VI testset that was included in VI analysis ( expected to be better than real accuracy)")
       val accuracy1 = Evaluator.evaluateModel_Accuracy(CVmodel, testData, "label")
+      println("accuracy of pureTestData")
       val accuracy2 = Evaluator.evaluateModel_Accuracy(CVmodel, pureTestData, "label")
       val accuracyBase = Evaluator.evaluateDF_Accuracy(majorityVotePrediction)
 
@@ -150,17 +152,16 @@ object VCF_BinaryClassifierPipe {
       result.predictions = predictions2
       result.PRcurve = curve2
       result.baselineAccuracy = accuracyBase
+      result.accuracy_testSetOfVITrain = accuracy1
 
-      print(accuracy2)
-      print(AUC2)
-      print(curve2)
-      print(accuracyBase)
-      print(CVmodel.bestModel.params)
 
       result
 
 
     } // nTop map
+
+
+  utils.writeResults("/data/content/vcf_classification/results.CV/",resultLst = NtopResults, sparkObj = spark)
 
   } //main
 

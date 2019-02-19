@@ -24,32 +24,35 @@ def evaluateModel_Accuracy(
       data: DataFrame,
       labelColName: String): Double = {
     val fullPredictions = model.transform(data).cache()
+  //fullPredictions.show(1, false)
     val predictions = fullPredictions.select("prediction").rdd.map(_.getDouble(0))
     val labels = fullPredictions.select(labelColName).rdd.map(_.getDouble(0))
     // Print number of classes for reference.
-    val numClasses = getNumClasses(fullPredictions.schema(labelColName)) match {
+    /*val numClasses = getNumClasses(fullPredictions.schema(labelColName)) match {
       case Some(n) => n
       case None => throw new RuntimeException(
         "Unknown failure when indexing labels for classification.")
     }
+    */
+  val numClasses = 2
     val accuracy = new MulticlassMetrics(predictions.zip(labels)).accuracy
     println(s"  Accuracy ($numClasses classes): $accuracy")
     accuracy
   }
 
   def evaluateDF_Accuracy(data:DataFrame) : Double = {
-    val predictions = data.select("prediction").rdd.map(_.getDouble(0))
+    val predictions = data.select("prediction").rdd.map(_.getInt(0).toDouble)
     val labels = data.select("label").rdd.map(_.getDouble(0))
     val numClasses = 2
     val accuracy = new MulticlassMetrics(predictions.zip(labels)).accuracy
-    println(s"  Accuracy ($numClasses classes): $accuracy")
+    println(s" -baseline Accuracy ($numClasses classes): $accuracy")
     accuracy
   }
 
 
   def evaluateModel_PR(predictions: DataFrame,spark : SparkSession) : RDD[(Double,Double)] = {
 
-    val predictions2ProbLabl = predictions.select("label", "probability").rdd.map{case r: Row => (r.getDouble(0), r.getAs[Vector[Double]](1).lift(0).get)}
+    val predictions2ProbLabl = predictions.select("label", "probability").rdd.map{case r: Row => (r.getAs[org.apache.spark.ml.linalg.DenseVector](1)(0),r.getDouble(0))}
 
     val metrics = new BinaryClassificationMetrics(predictions2ProbLabl)
     val precision = metrics.precisionByThreshold()

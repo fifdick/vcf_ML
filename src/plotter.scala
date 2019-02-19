@@ -9,7 +9,7 @@ import vegas.sparkExt._
 import vegas.Field
 class plotter(spark: SparkSession) {
 
-  def simpleTestPlot(): Unit = {
+  /*def simpleTestPlot(): Unit = {
     val seq = Seq(("a", 16), ("b", 77), ("c", 45), ("d", 101), ("e", 132), ("f", 166), ("g", 51))
     val df = seq.toDF("id", "value")
 
@@ -42,7 +42,7 @@ class plotter(spark: SparkSession) {
   }
 
   def makePlotReadyDF(accuracyFile:String,baselineFile:String,Ntops:Array[Int]) : DataFrame = {
-//**TODO : check that order of Ntop Array or that order of the lines in the file are exactly as run by Ntop Array...
+//TODO : check that order of Ntop Array or that order of the lines in the file are exactly as run by Ntop Array...
 // (probbaly not since we used coalesce with shuffle = true for savingAsTextFile)
     val accuracyValues = utils.readFile(accuracyFile).map{s => s.toDouble}
     val baselineValues = utils.readFile(accuracyFile).map{s => s.toDouble}
@@ -95,6 +95,7 @@ class plotter(spark: SparkSession) {
         return _tmp.select(cols: _*)
 
     }
+  */
 
 }
 

@@ -68,6 +68,7 @@ def evaluateModel_Accuracy(
     }
     // Precision-Recall Curve
     val PRC = metrics.pr
+    println(PRC.count())
     return(PRC)
 
   }

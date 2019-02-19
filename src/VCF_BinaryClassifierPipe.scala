@@ -26,7 +26,7 @@ object VCF_BinaryClassifierPipe {
     val mtryFracParams = Array(0.1, 0.2, 0.25, 0.3, 0.35, 0.4)
 
 
-    val NtopParams = Array(1)//,100, 500, 1000, 2000)
+    val NtopParams = Array(1,100, 500, 1000, 2000)
 
 
     val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
@@ -55,7 +55,7 @@ object VCF_BinaryClassifierPipe {
     //ois.close
 
     val TuningObj = new Tuning(spark)
-    TuningObj.bestParam = Tuple2(1, 0.1)
+    TuningObj.bestParam = Tuple2(10000, 0.1)
 
 
     val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = TuningObj.bestParam._1, rfParams = RandomForestParams(oob = true, nTryFraction = TuningObj.bestParam._2))
@@ -86,9 +86,9 @@ object VCF_BinaryClassifierPipe {
 
       val Tgbt = new GBTClassifier()
       val paramGrid = new ParamGridBuilder()
-        .addGrid(param = Tgbt.maxDepth, values = Array(2, 4 ))//,6, 8, 10, 15))
-        .addGrid(param = Tgbt.maxIter, values = Array(10, 15))//, 20, 50, 100, 1000))
-        //.addGrid(param = Tgbt.impurity, values = Array("entropy", "gini"))
+        .addGrid(param = Tgbt.maxDepth, values = Array(2, 4,6, 8, 10, 15))
+        .addGrid(param = Tgbt.maxIter, values = Array(10, 50, 100, 1000))
+        .addGrid(param = Tgbt.impurity, values = Array("entropy", "gini"))
         .build()
 
       val pipeline = new Pipeline().setStages(Array(Tgbt))

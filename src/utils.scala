@@ -44,7 +44,6 @@ object utils {
 
 
     val accuracies = resultLst.map(r => r.accuracy).toArray
-    print(accuracies)
     sparkObj.sparkContext.parallelize(accuracies).coalesce(1,true).saveAsTextFile(filepath + "_accuracies.txt")
     //sparkObj.sparkContext.parallelize(accuracies).map(a => a.toString()).saveAsSingleTextFile(filepath + "_accuraciesAsStrings.txt")
 

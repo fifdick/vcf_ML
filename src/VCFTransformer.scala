@@ -1,6 +1,5 @@
-import au.csiro.variantspark.api.{ImportanceAnalysis, VSContext}
+import au.csiro.variantspark.api.ImportanceAnalysis
 import au.csiro.variantspark.input.{FeatureSource, LabelSource}
-import org.apache.spark
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object VCFTransformer {

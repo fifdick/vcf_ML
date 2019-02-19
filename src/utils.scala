@@ -1,5 +1,6 @@
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
+
 object utils {
   def labelBalanceRatio(dataset: DataFrame): Double = {
     val numNegatives = dataset.filter(dataset("label") === 0).count()
@@ -28,25 +29,34 @@ object utils {
     }
   }
 */
-  def writeResults(filepath: String, resultLst: IndexedSeq[BinClassificationResult], sparkObj: SparkSession): Unit = {
 
+
+
+
+
+  def writeResults(filepath: String, resultLst: IndexedSeq[BinClassificationResult], sparkObj: SparkSession): Unit = {
     resultLst.zipWithIndex.map {
       //Returns the precision-recall curve, which is an RDD of (recall, precision), NOT (precision, recall), with (0.0, p) prepended to it, where p is the precision associated with the lowest recall on the curve
-      case res: (BinClassificationResult,Int) => res._1.PRcurve.coalesce(1, false).saveAsTextFile(filepath + "_RP_" + res._2 + ".txt")
+      case res: (BinClassificationResult,Int) => println(res._1.PRcurve.count())
+        res._1.PRcurve.coalesce(1,true).saveAsTextFile(filepath + "_RP_" + res._2 + ".txt")
         //spark.createDataFrame(res.PRcurve).toDF("Recall","Precision")
     }
 
 
     val accuracies = resultLst.map(r => r.accuracy).toArray
     print(accuracies)
-    sparkObj.sparkContext.parallelize(accuracies).saveAsTextFile(filepath + "_accuracies.txt")
-
+    sparkObj.sparkContext.parallelize(accuracies).coalesce(1,true).saveAsTextFile(filepath + "_accuracies.txt")
+    //sparkObj.sparkContext.parallelize(accuracies).map(a => a.toString()).saveAsSingleTextFile(filepath + "_accuraciesAsStrings.txt")
 
     val base= resultLst.map(res => res.baselineAccuracy).toArray
-    sparkObj.sparkContext.parallelize(base).saveAsTextFile(filepath + "_bases.txt")
+    sparkObj.sparkContext.parallelize(base).coalesce(1,true).saveAsTextFile(filepath + "_bases.txt")
 
     val aucs = resultLst.map(res => res.AUCvalue).toArray
-    sparkObj.sparkContext.parallelize(aucs).saveAsTextFile(filepath + "_AUCs.txt")
+    sparkObj.sparkContext.parallelize(aucs).coalesce(1,true).saveAsTextFile(filepath + "_AUCs.txt")
 
   }
+
+
+
+
 }

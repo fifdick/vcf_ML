@@ -7,9 +7,6 @@ import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-//import java.io
-//import java.io.{FileOutputStream, ObjectOutputStream}
-
 
 object VCF_BinaryClassifierPipe {
   def main(args: Array[String]): Unit = {
@@ -42,14 +39,14 @@ object VCF_BinaryClassifierPipe {
     /*   val TuningObj = new Tuning(spark)
 
        TuningObj.varImpTuning(vsContext,featureSource,labelSource,nTreeParams,mtryFracParams)
-       val filename = "/data/content/vcf_classification/results/tuningVI/" + timeStamp + ".txt"
+       val filename = "/data/content/vcf_classification/results/tuningVI/" + timeStamp + ".csv"
 
     // (2) write the instance out to a file
        val oos = new ObjectOutputStream(new FileOutputStream(filename + ".ScalaObj"))
            oos.writeObject(TuningObj)
            oos.close
-
-       TuningObj.TuningResultDf.write.csv(filename)
+        //TO BE TESTED:
+       TuningObj.TuningResultDf.write.format("csv").option("sep",";").option("inferSchema","true").option("header","true").save(filename)
        TuningObj.top10s.foreach(println)
    */
     // (3) read the object back in
@@ -161,11 +158,9 @@ object VCF_BinaryClassifierPipe {
     } // nTop map
 
 
-  utils.writeResults("/data/content/vcf_classification/results.CV/",resultLst = NtopResults, sparkObj = spark)
+  utils.writeResults("/data/content/vcf_classification/results/CV/",resultLst = NtopResults, sparkObj = spark)
 
   } //main
 
 
 }
-
-//obj

@@ -12,6 +12,7 @@ private var _predicitons : DataFrame= sparkSession.emptyDataFrame
 private var _baselineAccuracy : Double = 0
  // this is the accuracy meassured on the test set, that was split of the dataset that was usid in th VI analysis (expected to be better than accuracy of the pure testset)
  private var _accuracy_testSetOfVITrain : Double = 0
+  private var _Ntop : Int = 0
 
 
 // can define getters and setters later
@@ -23,7 +24,7 @@ private var _baselineAccuracy : Double = 0
   def predictions: DataFrame= _predicitons
   def baselineAccuracy: Double = _baselineAccuracy
  def accuracy_testSetOfVITrain : Double = _accuracy_testSetOfVITrain
-
+def Ntop : Int = _Ntop
  // Setter
  /*
  First, the method name is “age_=“. The underscore is a special character in Scala and in this case,
@@ -38,6 +39,6 @@ private var _baselineAccuracy : Double = 0
   def predictions_= (value:DataFrame) :Unit= _predicitons = value
   def baselineAccuracy_= (value:Double) : Unit = _baselineAccuracy = value
  def accuracy_testSetOfVITrain_= (value:Double):Unit =_accuracy_testSetOfVITrain = value
-
+def Ntop_=(value:Int):Unit=_Ntop = value
 
 }

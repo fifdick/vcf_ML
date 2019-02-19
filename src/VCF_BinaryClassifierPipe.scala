@@ -150,7 +150,7 @@ object VCF_BinaryClassifierPipe {
       result.PRcurve = curve2
       result.baselineAccuracy = accuracyBase
       result.accuracy_testSetOfVITrain = accuracy1
-
+      result.Ntop=Ntop
 
       result
 

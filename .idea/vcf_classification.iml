@@ -54,5 +54,8 @@
     <orderEntry type="library" name="src" level="application" />
     <orderEntry type="library" name="org.apache.hadoop:hadoop-hdfs:2.7.0" level="project" />
     <orderEntry type="library" name="org.apache.hadoop:hadoop-client:2.7.0" level="project" />
+    <orderEntry type="library" name="co.theasi:plotly_2.11:0.2.0" level="project" />
+    <orderEntry type="library" name="org.vegas-viz:vegas-spark_2.11:0.3.11" level="project" />
+    <orderEntry type="library" name="org.vegas-viz:vegas_2.11:0.3.11" level="project" />
   </component>
 </module>

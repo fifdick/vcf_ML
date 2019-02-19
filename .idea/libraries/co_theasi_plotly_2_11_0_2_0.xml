@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="co.theasi:plotly_2.11:0.2.0" type="repository">
+    <properties maven-id="co.theasi:plotly_2.11:0.2.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/co/theasi/plotly_2.11/0.2.0/plotly_2.11-0.2.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.11.8/scala-library-2.11.8.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/scalaj/scalaj-http_2.11/2.2.1/scalaj-http_2.11-2.2.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/json4s/json4s-native_2.11/3.3.0/json4s-native_2.11-3.3.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/json4s/json4s-core_2.11/3.3.0/json4s-core_2.11-3.3.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/json4s/json4s-ast_2.11/3.3.0/json4s-ast_2.11-3.3.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/json4s/json4s-scalap_2.11/3.3.0/json4s-scalap_2.11-3.3.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -40,7 +40,28 @@ class plotter(spark: SparkSession) {
     df
   }
 
-  def makePlotReadyDF(accuracies:String,baselines:String) : DataFrame = {
+  def makePlotReadyDF(accuracyFile:String,baselineFile:String,Ntops:Array[Int]) : DataFrame = {
+
+    val accuracyValues = utils.readFile(accuracyFile).map{s => s.toDouble}
+    val baselineValues = utils.readFile(accuracyFile).map{s => s.toDouble}
+
+    val accuracies = Ntops.zip(accuracyValues).toSeq
+    val baselines = Ntops.zip(baselines).toSeq
+
+    val mergedMap = (accuracies ++ baselines)
+      .groupBy{case(Ntop,performanceValue) => Ntop}
+      .mapValues(Ntop => Ntop.map{ case(Ntop,performanceValue)=> performanceValue}.toTuple2)
+    val rdd = spark.sparkContext.parallelize(mergedMap).map{ x => Row(x._1,x._2._1.x._2._2)}
+    val schema = new StructType(
+      Array(
+        StructField("Ntop", IntegerType, true),
+        StructField("Accuracy", DoubleType, true),
+        StructField("Baseline_Accuracy", DoubleType, true)
+      ))
+    val df = park.createDataFrame(rdd,schema)
+    df.head()
+    df
+
 
   }
 

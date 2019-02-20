@@ -1,7 +1,7 @@
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-class BinClassificationResult (sparkSession: SparkSession) {
+class BinClassificationResult (sparkSession: SparkSession) extends Serializable {
 
    //case class Prediction(label: Double, propability: Double)
 

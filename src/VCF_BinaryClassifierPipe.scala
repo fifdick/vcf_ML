@@ -32,7 +32,7 @@ object VCF_BinaryClassifierPipe {
 
 
     val NtopParams_rdd = spark.sparkContext.parallelize(Array(1,2),numSlices = 2) //,100,10, 500, 1000, 2000))
-    val NtopParams = Array(1,2)//100,10, 500, 1000, 2000)
+    val NtopParams = Array(2000)//100,10, 500, 1000, 2000)
 
     val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
 
@@ -70,14 +70,15 @@ object VCF_BinaryClassifierPipe {
     spark.sparkContext.parallelize(vars).coalesce(1,true).saveAsTextFile(VarFile)
    // importanceAnalysis.importantVariables(10).foreach(println)
 
-    val dataTransformed = spark.sparkContext.parallelize(NtopParams.map{ Ntop =>
+    val dataTransformed = NtopParams.map{ Ntop =>
 
       println(s"generating data for Ntop: $Ntop")
         // Create datasets selecting nTop variables
       val dat: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSource, labelSource, importanceAnalysis, Ntop, spark)
       val pureTestDat: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSourceTest, labelSourceTest, importanceAnalysis, Ntop, spark)
       (Ntop -> Tuple2(dat,pureTestDat))
-    }.toSeq)
+    }
+
 
 
 
@@ -91,13 +92,14 @@ object VCF_BinaryClassifierPipe {
       println(s"### $Ntop ###")
 
       val data=m._2._1
-      val pureTestData = m._2._1
+      val pureTestData = m._2._2
 
       data.show(1)
       data.count()
       //** MODEL SELECTION AND FITTING **//
       val splits = data.randomSplit(Array(0.7, 0.3))
-      val (trainingData, testData) = (splits(0), splits(1))
+      val (trainingData, testData) = (splits(0).toDF(), splits(1).toDF())
+
 
 
       println("balance of data:")
@@ -131,8 +133,10 @@ object VCF_BinaryClassifierPipe {
         .setEvaluator(GbtEvaluator)
         .setEstimatorParamMaps(paramGrid)
         .setNumFolds(10)
+
       val CVmodel = crossVal.fit(trainingData)
-      CVmodel.save("/data/content/vcf_classification/CV/models/#" + Ntop )
+      val modelFilepath= "/data/content/vcf_classification/CV/models/#" + Ntop.toString()
+      CVmodel.write.overwrite().save(modelFilepath)
       print(CVmodel.bestModel.params)
       print(CVmodel.avgMetrics.foreach(println))
       //CVmodel.save("/data/content/vcf_classification/models/"+ Ntop + ".obj")
@@ -174,7 +178,7 @@ object VCF_BinaryClassifierPipe {
       val AUC2 = GbtEvaluator.evaluate(predictions2)
       println(s"Area under ROC (pure testData) = ${AUC2}")
 
-      val result = new BinClassificationResult(spark)
+      val result = new BinClassificationResult(spark) with Serializable
 
       result.accuracy = accuracy2
       result.AUCvalue = AUC2
@@ -190,7 +194,7 @@ object VCF_BinaryClassifierPipe {
     } // nTop map
 
 
-  utils.writeResults("/data/content/vcf_classification/results/CV/",resultLst = NtopResults, sparkObj = spark)
+  utils.writeResults("/data/content/vcf_classification/results/CV/",resultLst = spark.sparkContext.parallelize(NtopResults), sparkObj = spark)
 
   } //main
 

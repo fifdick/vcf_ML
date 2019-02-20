@@ -35,7 +35,7 @@ object utils {
 
 
 
-  def writeResults(filepath: String, resultLst: RDD[BinClassificationResult], sparkObj: SparkSession): Unit = {
+  def writeResults(filepath: String, resultLst: RDD[BinClassificationResult with Serializable], sparkObj: SparkSession): Unit = {
     resultLst.map {
       //Returns the precision-recall curve, which is an RDD of (recall, precision), NOT (precision, recall), with (0.0, p) prepended to it, where p is the precision associated with the lowest recall on the curve
       case res: BinClassificationResult => println(res.PRcurve.count())

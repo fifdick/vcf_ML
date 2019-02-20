@@ -5,8 +5,11 @@ import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.classification.GBTClassifier
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
+import org.apache.spark.mllib.tree.loss.LogLoss
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.commons.io
+
 
 object VCF_BinaryClassifierPipe {
   def main(args: Array[String]): Unit = {
@@ -18,6 +21,7 @@ object VCF_BinaryClassifierPipe {
       //.enableHiveSupport()
       .getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
+    spark.sparkContext.setCheckpointDir("data/content/vcf_classification/tmp/")
     implicit val vsContext: VSContext = VSContext(spark)
 
     // val timeStamp : Long = System / 1000
@@ -55,10 +59,13 @@ object VCF_BinaryClassifierPipe {
     //ois.close
 
     val TuningObj = new Tuning(spark)
-    TuningObj.bestParam = Tuple2(10000, 0.1)
+    TuningObj.bestParam = Tuple2(1, 0.1)
 
-
+      //TODO: put into function
     val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = TuningObj.bestParam._1, rfParams = RandomForestParams(oob = true, nTryFraction = TuningObj.bestParam._2))
+    val vars = importanceAnalysis.importantVariables(2000).map{line => line.productIterator.mkString("\t")}
+    val VarFile = "/data/content/vcf_classification/results/topVars"+ TuningObj.bestParam.productIterator.mkString("_") + ".txt"
+    org.apache.commons.io.FileUtils.writeLines(file= VarFile, vars)
    // importanceAnalysis.importantVariables(10).foreach(println)
 
     val NtopResults = NtopParams.map { Ntop =>
@@ -84,11 +91,13 @@ object VCF_BinaryClassifierPipe {
 
       //##################BOOSTING############################################
 
-      val Tgbt = new GBTClassifier()
+      val Tgbt = new GBTClassifier().setCheckpointInterval(50).setCacheNodeIds(true)
+      print(Tgbt.getLossType)
       val paramGrid = new ParamGridBuilder()
         .addGrid(param = Tgbt.maxDepth, values = Array(2, 4,6, 8, 10, 15))
-        .addGrid(param = Tgbt.maxIter, values = Array(10, 50, 100, 1000))
-        .addGrid(param = Tgbt.impurity, values = Array("entropy", "gini"))
+        .addGrid(param = Tgbt.maxIter, values = Array(1000))//, 50, 100, 1000))
+        //.addGrid(param = Tgbt.impurity, values = Array("entropy", "gini"))
+        //.addGrid(param= Tgbt.setLossType("LogLoss"))
         .build()
 
       val pipeline = new Pipeline().setStages(Array(Tgbt))

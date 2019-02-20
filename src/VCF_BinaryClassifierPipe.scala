@@ -9,6 +9,7 @@ import org.apache.spark.mllib.tree.loss.LogLoss
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.commons.io
+import spire.macros.Auto.java
 
 
 object VCF_BinaryClassifierPipe {
@@ -65,7 +66,8 @@ object VCF_BinaryClassifierPipe {
     val importanceAnalysis = ImportanceAnalysis(featureSource, labelSource, nTrees = TuningObj.bestParam._1, rfParams = RandomForestParams(oob = true, nTryFraction = TuningObj.bestParam._2))
     val vars = importanceAnalysis.importantVariables(2000).map{line => line.productIterator.mkString("\t")}
     val VarFile = "/data/content/vcf_classification/results/topVars"+ TuningObj.bestParam.productIterator.mkString("_") + ".txt"
-    org.apache.commons.io.FileUtils.writeLines(file= VarFile, vars)
+    //org.apache.commons.io.FileUtils.writeLines(file= VarFile, lines=vars)
+    spark.sparkContext.parallelize(vars).coalesce(1,true).saveAsTextFile(VarFile)
    // importanceAnalysis.importantVariables(10).foreach(println)
 
     val NtopResults = NtopParams.map { Ntop =>
@@ -92,10 +94,12 @@ object VCF_BinaryClassifierPipe {
       //##################BOOSTING############################################
 
       val Tgbt = new GBTClassifier().setCheckpointInterval(50).setCacheNodeIds(true)
+      println("Losstype:  ")
       print(Tgbt.getLossType)
       val paramGrid = new ParamGridBuilder()
-        .addGrid(param = Tgbt.maxDepth, values = Array(2, 4,6, 8, 10, 15))
-        .addGrid(param = Tgbt.maxIter, values = Array(1000))//, 50, 100, 1000))
+        .addGrid(param = Tgbt.maxDepth, values = Array(2))//, 4,6, 8, 10, 15))
+        .addGrid(param = Tgbt.maxIter, values = Array(500))//,50,100,10))
+        .addGrid(param = Tgbt.stepSize,values= Array(0.1))//,0.01))//, 50, 100, 1000))
         //.addGrid(param = Tgbt.impurity, values = Array("entropy", "gini"))
         //.addGrid(param= Tgbt.setLossType("LogLoss"))
         .build()
@@ -110,6 +114,7 @@ object VCF_BinaryClassifierPipe {
         .setEstimatorParamMaps(paramGrid)
         .setNumFolds(10)
       val CVmodel = crossVal.fit(trainingData)
+      CVmodel.save("/data/content/vcf_classification/CV/models/#" + Ntop )
       print(CVmodel.bestModel.params)
       print(CVmodel.avgMetrics.foreach(println))
       //CVmodel.save("/data/content/vcf_classification/models/"+ Ntop + ".obj")

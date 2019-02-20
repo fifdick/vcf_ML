@@ -43,7 +43,8 @@ object utils {
     }
 
 
-    val accuracies = resultLst.map(r => Tuple2(r.Ntop,r.accuracy)).toArray
+    val accuracies = resultLst.map(r => (r.Ntop,r.accuracy).productIterator.mkString("\t")).toArray
+    //  org.apache.commons.io.FileUtils.writeLines(file= filepath + "_accuracies.txt", accuracies)
     sparkObj.sparkContext.parallelize(accuracies).coalesce(1,true).saveAsTextFile(filepath + "_accuracies.txt")
     //sparkObj.sparkContext.parallelize(accuracies).map(a => a.toString()).saveAsSingleTextFile(filepath + "_accuraciesAsStrings.txt")
 

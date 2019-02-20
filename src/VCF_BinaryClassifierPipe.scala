@@ -31,8 +31,8 @@ object VCF_BinaryClassifierPipe {
     val mtryFracParams = Array(0.1, 0.2, 0.25, 0.3, 0.35, 0.4)
 
 
-    val NtopParams = spark.sparkContext.parallelize(Array(100,10, 500, 1000, 2000))
-
+    val NtopParams_rdd = spark.sparkContext.parallelize(Array(1,2),numSlices = 2) //,100,10, 500, 1000, 2000))
+    val NtopParams = Array(1,2)//100,10, 500, 1000, 2000)
 
     val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
 
@@ -70,17 +70,31 @@ object VCF_BinaryClassifierPipe {
     spark.sparkContext.parallelize(vars).coalesce(1,true).saveAsTextFile(VarFile)
    // importanceAnalysis.importantVariables(10).foreach(println)
 
-    val NtopResults = NtopParams.map { Ntop =>
+    val dataTransformed = spark.sparkContext.parallelize(NtopParams.map{ Ntop =>
+
+      println(s"generating data for Ntop: $Ntop")
+        // Create datasets selecting nTop variables
+      val dat: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSource, labelSource, importanceAnalysis, Ntop, spark)
+      val pureTestDat: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSourceTest, labelSourceTest, importanceAnalysis, Ntop, spark)
+      (Ntop -> Tuple2(dat,pureTestDat))
+    }.toSeq)
 
 
-      println("###Ntop:###")
+
+
+    val NtopResults = dataTransformed.map { m =>
+
+      val Ntop = m._1
+
+
+
       println(s"### $Ntop ###")
 
-      // Create datasets selecting nTop variables
-      val data: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSource, labelSource, importanceAnalysis, Ntop, spark)
-      val pureTestData: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSourceTest, labelSourceTest, importanceAnalysis, Ntop, spark)
+      val data=m._2._1
+      val pureTestData = m._2._1
 
-
+      data.show(1)
+      data.count()
       //** MODEL SELECTION AND FITTING **//
       val splits = data.randomSplit(Array(0.7, 0.3))
       val (trainingData, testData) = (splits(0), splits(1))

@@ -31,7 +31,7 @@ object VCF_BinaryClassifierPipe {
     val mtryFracParams = Array(0.1, 0.2, 0.25, 0.3, 0.35, 0.4)
 
 
-    val NtopParams = Array(1,100, 500, 1000, 2000)
+    val NtopParams = spark.sparkContext.parallelize(Array(100,10, 500, 1000, 2000))
 
 
     val featureSource = vsContext.featureSource("/data/content/vcf_classification/data_used/trainSplit.vcf")
@@ -71,6 +71,10 @@ object VCF_BinaryClassifierPipe {
    // importanceAnalysis.importantVariables(10).foreach(println)
 
     val NtopResults = NtopParams.map { Ntop =>
+
+
+      println("###Ntop:###")
+      println(s"### $Ntop ###")
 
       // Create datasets selecting nTop variables
       val data: DataFrame = VCFTransformer.ReverseTransposeVCF(featureSource, labelSource, importanceAnalysis, Ntop, spark)

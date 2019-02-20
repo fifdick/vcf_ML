@@ -1,3 +1,4 @@
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 
@@ -34,7 +35,7 @@ object utils {
 
 
 
-  def writeResults(filepath: String, resultLst: IndexedSeq[BinClassificationResult], sparkObj: SparkSession): Unit = {
+  def writeResults(filepath: String, resultLst: RDD[BinClassificationResult], sparkObj: SparkSession): Unit = {
     resultLst.map {
       //Returns the precision-recall curve, which is an RDD of (recall, precision), NOT (precision, recall), with (0.0, p) prepended to it, where p is the precision associated with the lowest recall on the curve
       case res: BinClassificationResult => println(res.PRcurve.count())
@@ -43,16 +44,16 @@ object utils {
     }
 
 
-    val accuracies = resultLst.map(r => (r.Ntop,r.accuracy).productIterator.mkString("\t")).toArray
+    val accuracies = resultLst.map(r => (r.Ntop,r.accuracy).productIterator.mkString("\t"))
     //  org.apache.commons.io.FileUtils.writeLines(file= filepath + "_accuracies.txt", accuracies)
-    sparkObj.sparkContext.parallelize(accuracies).coalesce(1,true).saveAsTextFile(filepath + "_accuracies.txt")
+    accuracies.coalesce(1,true).saveAsTextFile(filepath + "_accuracies.txt")
     //sparkObj.sparkContext.parallelize(accuracies).map(a => a.toString()).saveAsSingleTextFile(filepath + "_accuraciesAsStrings.txt")
 
-    val base= resultLst.map(res => Tuple2(res.Ntop,res.baselineAccuracy)).toArray
-    sparkObj.sparkContext.parallelize(base).coalesce(1,true).saveAsTextFile(filepath + "_bases.txt")
+    val base= resultLst.map(res => Tuple2(res.Ntop,res.baselineAccuracy))
+    base.coalesce(1,true).saveAsTextFile(filepath + "_bases.txt")
 
-    val aucs = resultLst.map(res => Tuple2(res.Ntop,res.AUCvalue)).toArray
-    sparkObj.sparkContext.parallelize(aucs).coalesce(1,true).saveAsTextFile(filepath + "_AUCs.txt")
+    val aucs = resultLst.map(res => Tuple2(res.Ntop,res.AUCvalue))
+    aucs.coalesce(1,true).saveAsTextFile(filepath + "_AUCs.txt")
 
   }
 
